@@ -1,0 +1,187 @@
+   
+'use strict';
+
+const rand = () => {
+    return Math.floor(Math.random()*3);
+};
+
+const emojiConvert = (randNumber) => {
+    var number = [];
+    var item = [];
+    var shape = [];
+    var action = [];
+
+    number[0] = '1️⃣';
+    number[1] = '2️⃣';
+    number[2] = '3️⃣';
+    item[0] = '🥨';
+    item[1] = '🍟';
+    item[2] = '🍕';
+    shape[0] = '🔵';
+    shape[1] = '🟦';
+    shape[2] = '🔷';
+    action[0] = '🙉';
+    action[1] = '🙈';
+    action[2] = '🙊';
+
+var numbers = randNumber.split('');
+return number[numbers[0]] + item[numbers[1]] + shape[numbers[2]] + action[numbers[3]];
+
+};
+
+const sendThree = () => {
+var result1 = '';
+var result2 = '';
+var result3 = '';
+
+for (var i = 0; i < 4; i++) {
+    result1 += rand();
+    result2 += rand();
+    result3 += rand();
+}
+return emojiConvert(result1) + ',' + emojiConvert(result2) + ',' + emojiConvert(result3);
+};
+
+// check if cards make a valid set
+const isValidSet = (card1, card2, card3) => {
+	if(card1 === card2 || card1 === card3 || card2 === card3)
+		return false;
+
+	var let1 = [...card1];
+	var let2 = [...card2];
+	var let3 = [...card3];
+
+	for (var i = 0; i < let1.length ; i++) {
+		// not all the same or not all different
+		if(!(let1[i] === let2[i] && let1[i] === let3[i] && let2[i] === let3[i])
+		    && !(let1[i] !== let2[i] && let1[i] !== let3[i] && let2[i] !== let3[i])) return false;
+	}
+	return true;
+};
+
+// check if set is present in deck
+const setAvail = (cards) => {
+    for(var i = 0; i < cards.length; i++){
+        for(var j = i+1; j < cards.length; j++){
+            for(var k = j+1; k < cards.length; k++){
+                if(isValidSet(cards[i], cards[j], cards[k])) return `${true}-${cards[i]}-${cards[j]}-${cards[k]}`;
+            }
+        }
+    }
+    return `${false}`;
+};
+
+const start = (say, sendButton) => {
+ say(['There will be 12 cards, each with 4 attributes, represented by emojis', 'The attributes are number, food, shape and action. For example, 1️⃣🥨🔵🙉 is one possible card',  'The goal is to find 3 cards such that, for each attribute, the emojis are either the same or all different', 'For example,1️⃣🥨🔵🙉, 1️⃣🍟🔵🙉, 1️⃣🍕🔵🙉 would be a valid set.','However, 1️⃣🍕🔵🙉, 2️⃣🍕🔵🙉, 2️⃣🍕🔵🙉 would not be a valid set' , 'Use the Hint button if you need one of the cards in the set!']).then(() => {
+        sendButton('Would you like to play the game?', [{title: 'Yes', payload: '1-0-0-0'}, {title: 'No', payload: '0-0-0-0'}]);
+    });
+};
+const state = (payload, say, sendButton) => {
+
+    const array = payload.split('-');
+    var play = parseInt(array[0]); var set = array[1]; var number = parseInt(array[2]); var cardString = array[3]; var hint = array[4];
+    var cards = cardString.split(',');
+    var setCards = set.split(',');
+
+    if (play == 1) {
+        if (set == '0' && number === 0) {
+            var str1 = 'These are your cards';
+            cardString = sendThree() +',' + sendThree() + ',' + sendThree() + ',' + sendThree();
+            var str3 = 'To choose a set, choose the cards one at a time';
+
+            cards = cardString.split(',');
+
+            var response = setAvail(cards).split('-');
+            while(!response[0]){
+                cardString = sendThree() +',' + sendThree() + ',' + sendThree() + ',' + sendThree();
+                cards = cardString.split(',');
+                response = setAvail(cards).split('-');
+            }
+
+
+             say([str1, cardString, str3]).then(() => {
+                sendButton('Which card do you want to choose first?', [{ title: cards[0] , payload: `${1}-${cards[0]}-${1}-${cardString}`}, {title: cards[1] , payload: `${1}-${cards[1]}-${1}-${cardString}` }, {title: cards[2] , payload: `${1}-${cards[2]}-${1}-${cardString}`}, {title: cards[3] , payload: `${1}-${cards[3]}-${1}-${cardString}`}, {title: cards[4] , payload: `${1}-${cards[4]}-${1}-${cardString}`}, {title: cards[5] , payload: `${1}-${cards[5]}-${1}-${cardString}`}, {title: cards[6] , payload: `${1}-${cards[6]}-${1}-${cardString}`}, {title: cards[7] , payload: `${1}-${cards[7]}-${1}-${cardString}`}, {title: cards[8] , payload: `${1}-${cards[8]}-${1}-${cardString}`}, {title: cards[9] , payload: `${1}-${cards[9]}-${1}-${cardString}`}, {title: cards[10] , payload: `${1}-${cards[10]}-${1}-${cardString}`}, {title: cards[11] , payload: `${1}-${cards[11]}-${1}-${cardString}`}, {title: 'Hint 😉' , payload: `${1}-${response[1]}-${1}-${cardString}-${true}`}]);
+                });
+        }
+
+        else if (number === 0) {
+            var newStr = sendThree();
+            var newCards = newStr.split(',');
+            cards = cardString.split(',');
+            for (var i = 0; i < cards.length; i++) {
+                if (cards[i] == setCards[0]) {
+                    cards[i] = newCards[0];
+                }
+                if (cards[i] == setCards[1]) {
+                    cards[i] = newCards[1];
+                }
+                if (cards[i] == setCards[2]) {
+                    cards[i] = newCards[2];
+                }
+            }
+
+            var newResponse = setAvail(cards).split('-');
+            while(!newResponse[0]) {
+                 newStr = sendThree();
+                 newCards = newStr.split(',');
+                 cards = cardString.split(',');
+                for (i = 0; i < cards.length; i++) {
+                    if (cards[i] == setCards[0]) {
+                        cards[i] = newCards[0];
+                    }
+                    if (cards[i] == setCards[1]) {
+                        cards[i] = newCards[1];
+                    }
+                    if (cards[i] == setCards[2]) {
+                        cards[i] = newCards[2];
+                    }
+                }
+                newResponse = setAvail(cards).split('-');
+            }
+
+            cardString = '';
+            for (i = 0; i < 11; i++) {
+                cardString += cards[i] + ',';
+            }
+            cardString += cards[11];
+             var newstr1 = 'These are your new cards';
+            say([newstr1, cardString]).then(() => {
+                sendButton('Which card do you want to choose first?', [{ title: cards[0] , payload: `${1}-${cards[0]}-${1}-${cardString}`}, {title: cards[1] , payload: `${1}-${cards[1]}-${1}-${cardString}` }, {title: cards[2] , payload: `${1}-${cards[2]}-${1}-${cardString}`}, {title: cards[3] , payload: `${1}-${cards[3]}-${1}-${cardString}`}, {title: cards[4] , payload: `${1}-${cards[4]}-${1}-${cardString}`}, {title: cards[5] , payload: `${1}-${cards[5]}-${1}-${cardString}`}, {title: cards[6] , payload: `${1}-${cards[6]}-${1}-${cardString}`}, {title: cards[7] , payload: `${1}-${cards[7]}-${1}-${cardString}`}, {title: cards[8] , payload: `${1}-${cards[8]}-${1}-${cardString}`}, {title: cards[9] , payload: `${9}-${cards[9]}-${1}-${cardString}`}, {title: cards[10] , payload: `${1}-${cards[10]}-${1}-${cardString}`}, {title: cards[11] , payload: `${1}-${cards[11]}-${1}-${cardString}`}, {title: 'Hint 😉' , payload: `${1}-${newResponse[1]}-${1}-${cardString}-${true}`}]);
+            });
+        }
+
+        else if (number == 1) {
+            if(hint) say(`One of the cards in the set is ${set}`);
+
+            sendButton('Which card do you want to choose second?', [{ title: cards[0] , payload: `${1}-${set + ',' + cards[0]}-${2}-${cardString}`}, {title: cards[1] , payload: `${1}-${set + ',' + cards[1]}-${2}-${cardString}` }, {title: cards[2] , payload: `${1}-${set + ',' + cards[2]}-${2}-${cardString}`}, {title: cards[3] , payload: `${1}-${set + ',' + cards[3]}-${2}-${cardString}`}, {title: cards[4] , payload: `${1}-${set + ',' + cards[4]}-${2}-${cardString}`}, {title: cards[5] , payload: `${1}-${set + ',' + cards[5]}-${2}-${cardString}`}, {title: cards[6] , payload: `${1}-${set + ',' + cards[6]}-${2}-${cardString}`}, {title: cards[7] , payload: `${1}-${set + ',' + cards[7]}-${2}-${cardString}`}, {title: cards[8] , payload: `${1}-${set + ',' + cards[8]}-${2}-${cardString}`}, {title: cards[9] , payload: `${9}-${set + ',' + cards[9]}-${2}-${cardString}`}, {title: cards[10] , payload: `${1}-${set + ',' + cards[10]}-${2}-${cardString}`}, {title: cards[11] , payload: `${1}-${set + ',' + cards[11]}-${2}-${cardString}`}]);
+        }
+
+         else if (number == 2) {
+            sendButton('Which card do you want to choose third?', [{ title: cards[0] , payload: `${1}-${set + ',' + cards[0]}-${3}-${cardString}`}, {title: cards[1] , payload: `${1}-${set + ',' + cards[1]}-${3}-${cardString}` }, {title: cards[2] , payload: `${1}-${set + ',' + cards[2]}-${3}-${cardString}`}, {title: cards[3] , payload: `${1}-${set + ',' + cards[3]}-${3}-${cardString}`}, {title: cards[4] , payload: `${1}-${set + ',' + cards[4]}-${3}-${cardString}`}, {title: cards[5] , payload: `${1}-${set + ',' + cards[5]}-${3}-${cardString}`}, {title: cards[6] , payload: `${1}-${set + ',' + cards[6]}-${3}-${cardString}`}, {title: cards[7] , payload: `${1}-${set + ',' + cards[7]}-${3}-${cardString}`}, {title: cards[8] , payload: `${1}-${set + ',' + cards[8]}-${3}-${cardString}`}, {title: cards[9] , payload: `${9}-${set + ',' + cards[9]}-${3}-${cardString}`}, {title: cards[10] , payload: `${1}-${set + ',' + cards[10]}-${3}-${cardString}`}, {title: cards[11] , payload: `${1}-${set + ',' + cards[11]}-${3}-${cardString}`}]);
+        }
+
+        else if (number == 3) {
+            if(!isValidSet(setCards[0], setCards[1], setCards[2])){
+                sendButton('Oops that is not a valid set', [{title: 'Try again!', payload: `${1}-${0}-${0}-${cardString}`}]);
+            }
+            else {
+                sendButton('Good job! You found a set!', [{title: 'New Cards', payload: `${1}-${set}-${0}-${cardString}`}]);
+            }
+        }
+    }
+
+    if (play === 0) {
+        say('Okay, lets play next time!');
+    }
+
+};
+
+module.exports = {
+    filename: 'calc',
+    title: 'Set',
+    introduction: [
+        'This is a classic game where you have to find patterns!'
+    ],
+    start: start,
+    state: state
+};
